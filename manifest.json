@@ -1,0 +1,17 @@
+{
+  "id": "running_freedom",
+  "name": "Running Freedom",
+  "version": "0.0.0-dev",
+  "api": 2,
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "QOL",
+  "game_version": ">=0.3.96 <0.3.97",
+  "games": ["firered", "leafgreen", "ruby", "sapphire", "emerald"],
+  "permissions": ["engine_internals"],
+  "priority": 100,
+  "dependencies": [],
+  "conflicts": ["gen1_wild_qol"],
+  "github": "hugo-cacciatori/running_freedom",
+  "description": "Run indoors and before receiving Running Shoes. Uses the normal run button; no settings."
+}
