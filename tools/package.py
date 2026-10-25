@@ -2,8 +2,10 @@
 import hashlib
 import json
 from pathlib import Path
+import sys
 import zipfile
 
+sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 FILES = ("manifest.json", "main.lua", "README.md", "LICENSE")
 

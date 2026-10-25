@@ -1,3 +1,11 @@
+# 0.2.0
+
+- Extend B-button running freedom to Gen 1 (`red`, `blue`, `yellow`) and Gen 2 (`gold`, `silver`, `crystal`) via `"games": ["all"]` and the engine's `movement.speed` hook.
+- Synchronize Gen 1 `player.stepFramesCur` on `world.stepped` when idle so NPC escort scripts stay aligned at 16 frames after a B-run step.
+- Preserve bicycle, downhill cycling, surfing, ledge-hop, spinner, and scripted movement speeds across all generations.
+- Automatically clean temporary staging directories in `tools/test_package.py` and `tools/test_installed.py`.
+- Verify 223 headless assertions across all 11 Gen 1–3 profiles plus installed indoor/outdoor map checks on `firered`, `emerald`, `red`, and `crystal`.
+
 # 0.1.0
 
 - Run before receiving Running Shoes in FireRed, LeafGreen, Ruby, Sapphire and Emerald.

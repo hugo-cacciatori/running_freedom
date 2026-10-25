@@ -1,14 +1,16 @@
 """Check the packaged mod in an isolated, external headless engine fixture.
 
 This verifies packaging and native behavior, not a full graphical game install.
-The temporary fixture is retained for inspection; its path is printed.
+The temporary fixture is automatically cleaned up on exit.
 """
 import argparse
 from pathlib import Path
 import shutil
+import sys
 import tempfile
 import zipfile
 
+sys.dont_write_bytecode = True
 from test import run
 
 
@@ -19,14 +21,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     engine = args.engine.resolve()
     archive = args.archive.resolve()
-    stage = Path(tempfile.mkdtemp(prefix="running-freedom-check-"))
-    print(f"External fixture: {stage}", flush=True)
-    for name in ("src", "tests", "data"):
-        shutil.copytree(engine / name, stage / name)
-    with zipfile.ZipFile(archive) as bundle:
-        expected = {f"running_freedom/{name}" for name in
-                    ("manifest.json", "main.lua", "README.md", "LICENSE")}
-        if set(bundle.namelist()) != expected:
-            raise ValueError("Archive contains missing or unexpected files")
-        bundle.extractall(stage / "mods")
-    run(stage, stage / "mods" / "running_freedom")
+    with tempfile.TemporaryDirectory(prefix="running-freedom-check-") as tmp:
+        stage = Path(tmp).resolve()
+        print(f"External fixture: {stage}", flush=True)
+        for name in ("src", "tests", "data"):
+            shutil.copytree(engine / name, stage / name)
+        with zipfile.ZipFile(archive) as bundle:
+            expected = {f"running_freedom/{name}" for name in
+                        ("manifest.json", "main.lua", "README.md", "LICENSE")}
+            if set(bundle.namelist()) != expected:
+                raise ValueError("Archive contains missing or unexpected files")
+            bundle.extractall(stage / "mods")
+        run(stage, stage / "mods" / "running_freedom")
+

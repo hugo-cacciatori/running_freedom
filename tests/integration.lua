@@ -118,8 +118,148 @@ for _, version in ipairs({ "firered", "leafgreen", "ruby", "sapphire", "emerald"
   Runtime.reset()
   print("PASS " .. version)
 end
-GameVersion.set("red")
-local unsupported = Sdk.loadMod(MOD_PATH, { generation = 1 })
-check(not unsupported.mod or unsupported.mod.state ~= "loaded", "Gen 1 not advertised or loaded")
-unsupported.release()
-print("PASS " .. total .. " assertions; native loader and player; no windows")
+
+-- Gen 1: Red, Blue, Yellow via native src.world.Player + movement.speed hook
+local SpriteRenderer = require("src.render.SpriteRenderer")
+local origSpriteNew = SpriteRenderer.new
+SpriteRenderer.new = function(def, seed)
+  return { def = def, seed = seed }
+end
+local Gen1Player = require("src.world.Player")
+local Gen1Game = require("src.core.Game")
+local gen1Data = {
+  sprites = { SPRITE_RED = { image = "x", frames = 1 } },
+  field = { playerSprites = { walk = "SPRITE_RED" } },
+  constants = { world = { stepFrames = 16, bikeStepFrames = 8, turnFrames = 4 } },
+}
+for _, version in ipairs({ "red", "blue", "yellow" }) do
+  GameVersion.set(version)
+  Runtime.reset()
+  local run = Sdk.loadMod(MOD_PATH, { generation = 1 })
+  check(#run.errors == 0, table.concat(run.errors, "\n"))
+  check(run.mod and run.mod.state == "loaded", version .. ": real loader")
+  check(not run.loader.optionSchemas.running_freedom, version .. ": no settings schema")
+
+  local wall = false
+  local map = {
+    widthCells = 10, heightCells = 10,
+    inBounds = function(_, cx, cy) return cx >= 0 and cy >= 0 and cx < 10 and cy < 10 end,
+    isWalkableCell = function() return not wall end,
+    isWaterCell = function() return false end,
+    cellTile = function() return 0 end,
+  }
+  local bHeld = false
+  Gen1Game.save = { onBike = false }
+  Gen1Game.input = { isDown = function(_, btn) return btn == "b" and bHeld end }
+  local overworld = { scriptMoves = {} }
+  Gen1Game.state = { current = function() return overworld end }
+  Gen1Game.overworld = overworld
+
+  local p = Gen1Player.new(gen1Data, 2, 2, "down")
+  check(p:stepLength("down") == 16, version .. ": 16-frame walk without B")
+  check(p:tryMove("down", map, {}) == "moved" and p.stepFramesCur == 16, version .. ": walk step starts at 16 frames")
+  for _ = 1, 16 do p:update() end
+  check(not p.moving and p.cellY == 3, version .. ": walk step finishes in 16 frames")
+
+  bHeld = true
+  check(p:stepLength("down") == 8, version .. ": 8-frame run with B held")
+  check(p:tryMove("down", map, {}) == "moved" and p.stepFramesCur == 8, version .. ": B-run step starts at 8 frames")
+  for _ = 1, 8 do p:update() end
+  check(not p.moving and p.cellY == 4, version .. ": B-run step finishes in 8 frames")
+
+  -- Releasing B and firing world.stepped restores stepFramesCur to 16 for escort scripts.
+  bHeld = false
+  Runtime.emit("world.stepped", { player = p })
+  check(p.stepFramesCur == 16, version .. ": world.stepped restores stepFramesCur when idle")
+
+  -- Preserved constraints while holding B: bike, surf, ledgeHop, spinning, scripted walk, walls.
+  bHeld = true
+  Gen1Game.save.onBike = true
+  check(p:stepLength("down") == 8, version .. ": bike speed not quartered to 4")
+  Gen1Game.save.onBike = false
+  p.surfing = true
+  check(p:stepLength("down") == 16, version .. ": surfing speed unchanged")
+  p.surfing = false
+  p.ledgeHop = true
+  check(p:stepLength("down") == 16, version .. ": ledge hop speed unchanged")
+  p.ledgeHop = false
+  overworld.scriptMoves = { { entity = p } }
+  check(p:stepLength("down") == 16, version .. ": scripted walk speed unchanged")
+  overworld.scriptMoves = {}
+  wall = true
+  check(p:tryMove("down", map, {}) == "blocked" and not p.moving, version .. ": walls still block running")
+  wall = false
+
+  run.loader:_rollback("running_freedom")
+  check(p:stepLength("down") == 16, version .. ": rollback restores 16-frame walk")
+  run.release()
+  Runtime.reset()
+  print("PASS " .. version)
+end
+SpriteRenderer.new = origSpriteNew
+
+-- Gen 2: Gold, Silver, Crystal via native src.world.gen2.World:movePlayer + src.world.gen2.Player
+local Gen2World = require("src.world.gen2.World")
+local Gen2Player = require("src.world.gen2.Player")
+for _, version in ipairs({ "gold", "silver", "crystal" }) do
+  GameVersion.set(version)
+  Runtime.reset()
+  local run = Sdk.loadMod(MOD_PATH, { generation = 2 })
+  check(#run.errors == 0, table.concat(run.errors, "\n"))
+  check(run.mod and run.mod.state == "loaded", version .. ": real loader")
+  check(not run.loader.optionSchemas.running_freedom, version .. ": no settings schema")
+
+  local wall = false
+  local map = {
+    widthCells = 10, heightCells = 10,
+    inBounds = function(_, cx, cy) return cx >= 0 and cy >= 0 and cx < 10 and cy < 10 end,
+    isWalkable = function() return not wall end,
+    cellCollision = function() return wall and 0x07 or 0x00 end,
+  }
+  local bHeld = false
+  local p = Gen2Player.new(2, 2, "down")
+  local world = setmetatable({
+    player = p,
+    map = map,
+    entities = { p },
+    playerState = 0,
+    game = {
+      save = {},
+      input = { isDown = function(_, btn) return btn == "b" and bHeld end },
+    },
+    downhill = function() return false end,
+    cellCollisionAcross = function(_, m, x, y) return m:cellCollision(x, y) end,
+    npcAt = function() return nil end,
+    tryLedgeJump = function() return false end,
+  }, { __index = Gen2World })
+
+  check(world:movePlayer("down") == "moved" and p.stepFrames == 16, version .. ": 16-frame walk without B")
+  for _ = 1, 16 do p:update() end
+  check(not p.moving and p.cellY == 3, version .. ": walk step finishes in 16 frames")
+
+  bHeld = true
+  check(world:movePlayer("down") == "moved" and p.stepFrames == 8, version .. ": 8-frame B-run with B held")
+  for _ = 1, 8 do p:update() end
+  check(not p.moving and p.cellY == 4, version .. ": B-run step finishes in 8 frames")
+
+  -- Preserved constraints: bike (state 1), surf (state 4), downhill, scripted step, walls.
+  world.playerState = 1 -- PLAYER_BIKE
+  check(world:movePlayer("down") == "moved" and p.stepFrames == 8, version .. ": bike speed not quartered to 4")
+  for _ = 1, 8 do p:update() end
+  world.playerState = 0
+  p:scriptStep("down")
+  check(p.stepFrames == 16, version .. ": scriptStep retains 16-frame walking speed")
+  for _ = 1, 16 do p:update() end
+  wall = true
+  check(world:movePlayer("down") == "blocked" and not p.moving, version .. ": walls still block running")
+  wall = false
+
+  run.loader:_rollback("running_freedom")
+  check(world:movePlayer("down") == "moved" and p.stepFrames == 16, version .. ": rollback restores 16-frame walk")
+  run.release()
+  Runtime.reset()
+  print("PASS " .. version)
+end
+
+print("PASS " .. total .. " assertions; native loader and player across Gen 1-3; no windows")
+

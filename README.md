@@ -1,33 +1,34 @@
 # Running Freedom
 
-Run indoors and before receiving Running Shoes in **gen1recomp**. Hold the normal run button (B by default). Both changes apply whenever the mod is loaded; there are no settings, toggles or extra key bindings.
+Run indoors and before receiving Running Shoes in **gen1recomp**. Hold the normal run button (`B` by default) to run at 8 frames per tile (twice walking speed). Both changes apply whenever the mod is loaded; there are no settings, toggles, or extra key bindings.
 
-Targets FireRed, LeafGreen, Ruby, Sapphire and Emerald on gen1recomp 0.3.96. FireRed and LeafGreen already allow indoor running; the mod removes their shoe requirement. Hoenn games also gain indoor running. Other engine versions are deliberately excluded until checked.
+Supports all three generations on **gen1recomp 0.3.96** (`"games": ["all"]`):
+- **Gen 3 (`firered`, `leafgreen`, `ruby`, `sapphire`, `emerald`):** Removes the Running Shoes progression requirement everywhere and enables indoor running in Ruby, Sapphire, and Emerald (FireRed and LeafGreen already allow indoor running natively).
+- **Gen 1 (`red`, `blue`, `yellow`) & Gen 2 (`gold`, `silver`, `crystal`):** Adds 8-frame `B`-button running indoors and outdoors from the start of the game via the engine's `movement.speed` hook, and keeps Gen 1 `stepFramesCur` synchronized on `world.stepped` so NPC escort scripts never desync.
 
 ## Installation
 
-Download the ZIP from [Releases](https://github.com/hugo-cacciatori/running_freedom/releases), extract its `running_freedom` folder into your game's `mods/` folder, enable it in the mod manager, and launch a supported game. To remove its effects, disable it and restart the game. Your shoe ownership and progression flags are unchanged.
+Download the ZIP from [Releases](https://github.com/hugo-cacciatori/running_freedom/releases), extract its `running_freedom` folder into your game's `mods/` folder, enable it in the mod manager, and launch any supported game. To remove its effects, disable it and restart the game. Save files and progression flags are never modified.
 
-Native movement speed, collisions, scripted movement and terrain restrictions remain in place. This mod does not add running to long grass, hot springs or other terrain where the engine forbids it. It does not change cycling or surfing speeds.
-
-Do not combine this with Gen1WildQOL's overlapping sprint implementation. Other mods that replace `Player.canDash` may conflict. This mod declares engine-internals access because the engine does not expose a native dash-eligibility hook.
+Native movement speed, collisions, scripted movement, and terrain restrictions remain in place:
+- Does not allow running on Gen 3 long grass, hot springs, underwater maps, or even-elevation Fortree bridges where the engine forbids it.
+- Does not alter cycling, downhill cycling, surfing, ledge-hopping, spinning tiles, or scripted player walks.
+- Excludes overlapping sprint mods (`gen1_wild_qol`, `gen1_sprint`).
 
 ## Development
 
-Install Python and `lupa==2.6`, then run:
+ Run the headless integration suite against the engine checkout:
 
 ```powershell
 python tools/test.py --engine C:/path/to/gen1recomp-0.3.96
 ```
 
-Tests use LuaJIT and the real mod loader/player, with synthetic map data. They run without windows or ROMs. Full visual playthroughs are not implied by these checks.
+Version `0.2.0` passes 223 headless assertions across all 11 Gen 1–3 game profiles (`firered`, `leafgreen`, `ruby`, `sapphire`, `emerald`, `red`, `blue`, `yellow`, `gold`, `silver`, `crystal`), plus standalone packaged verification against the installed `0.3.96` `.love` payload and imported `firered`, `emerald`, `red`, and `crystal` map caches.
 
-Version 0.1.0 passes 143 native-loader/player assertions across all five targets, including input, speed, walls, script locks, terrain, save flags and removal/reload. The packaged mod also passes headless checks against the installed 0.3.96 game payload and actual FireRed/Emerald indoor and outdoor maps, outside the repository. Red and Crystal correctly skip it. LeafGreen, Ruby and Sapphire have synthetic-data native-profile coverage; full visual playthroughs and arbitrary mod combinations are not covered.
-
-Build the mod folder, ZIP and checksums with `python tools/package.py`. The ZIP includes only the mod's manifest, entry script, README and license. Test its contents outside the repository with:
+Build the distributable bundle, ZIP, and `SHA256SUMS.txt` with `python tools/package.py`, then verify the archive outside the repository:
 
 ```powershell
-python tools/test_package.py --engine C:/path/to/gen1recomp-0.3.96 --archive dist/v0.1.0/running_freedom-0.1.0.zip
+python tools/test_package.py --engine C:/path/to/gen1recomp-0.3.96 --archive dist/v0.2.0/running_freedom-0.2.0.zip
+python tools/test_installed.py --installation C:/Users/<you>/AppData/Roaming/pokemon-love2d --archive dist/v0.2.0/running_freedom-0.2.0.zip
 ```
 
-For installed-data verification, use `tools/test_installed.py --installation <game-data-folder> --archive <zip>`. This copies the installed 0.3.96 `.love` and FireRed/Emerald data into a temporary directory, tests native movement without opening windows, and retains the temporary copy for inspection. User saves/options are not used.

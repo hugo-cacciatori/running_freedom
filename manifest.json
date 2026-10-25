@@ -1,17 +1,17 @@
 {
   "id": "running_freedom",
   "name": "Running Freedom",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "api": 2,
   "entry": "main.lua",
   "profile": "content",
   "category": "QOL",
   "game_version": ">=0.3.96 <0.3.97",
-  "games": ["firered", "leafgreen", "ruby", "sapphire", "emerald"],
+  "games": ["all"],
   "permissions": ["engine_internals"],
   "priority": 100,
   "dependencies": [],
-  "conflicts": ["gen1_wild_qol"],
+  "conflicts": ["gen1_wild_qol", "gen1_sprint"],
   "github": "hugo-cacciatori/running_freedom",
-  "description": "Run indoors and before receiving Running Shoes. Uses the normal run button; no settings."
+  "description": "Run indoors and before receiving Running Shoes across Gen 1, Gen 2, and Gen 3. Hold B to run; no settings."
 }

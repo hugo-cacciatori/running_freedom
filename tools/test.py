@@ -2,8 +2,15 @@
 import argparse
 import os
 from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+TOOLS_PY = Path(__file__).resolve().parents[3] / ".tools" / "python"
+if TOOLS_PY.is_dir() and str(TOOLS_PY) not in sys.path:
+    sys.path.insert(0, str(TOOLS_PY))
 
 from lupa.luajit21 import LuaRuntime
+
 
 
 def run(engine, mod):
