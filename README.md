@@ -6,7 +6,7 @@ Targets FireRed, LeafGreen, Ruby, Sapphire and Emerald on gen1recomp 0.3.96. Fir
 
 ## Installation
 
-Download the release ZIP, extract its `running_freedom` folder into your game's `mods/` folder, enable it in the mod manager, and launch a supported game. To remove its effects, disable it and restart the game. Your shoe ownership and progression flags are unchanged.
+Download the ZIP from [Releases](https://github.com/hugo-cacciatori/running_freedom/releases), extract its `running_freedom` folder into your game's `mods/` folder, enable it in the mod manager, and launch a supported game. To remove its effects, disable it and restart the game. Your shoe ownership and progression flags are unchanged.
 
 Native movement speed, collisions, scripted movement and terrain restrictions remain in place. This mod does not add running to long grass, hot springs or other terrain where the engine forbids it. It does not change cycling or surfing speeds.
 
@@ -22,10 +22,12 @@ python tools/test.py --engine C:/path/to/gen1recomp-0.3.96
 
 Tests use LuaJIT and the real mod loader/player, with synthetic map data. They run without windows or ROMs. Full visual playthroughs are not implied by these checks.
 
-Development build: native-loader/player checks pass for all five target games, including input, speed, walls, script locks, terrain, save flags and removal/reload. A packaged copy also passes from an external headless engine fixture. Full installed-game verification is pending; this is not yet a released milestone.
+Version 0.1.0 passes 143 native-loader/player assertions across all five targets, including input, speed, walls, script locks, terrain, save flags and removal/reload. The packaged mod also passes headless checks against the installed 0.3.96 game payload and actual FireRed/Emerald indoor and outdoor maps, outside the repository. Red and Crystal correctly skip it. LeafGreen, Ruby and Sapphire have synthetic-data native-profile coverage; full visual playthroughs and arbitrary mod combinations are not covered.
 
-Build a development ZIP and checksums with `python tools/package.py`. The ZIP includes only the mod's manifest, entry script, README and license. Test its contents outside the repository with:
+Build the mod folder, ZIP and checksums with `python tools/package.py`. The ZIP includes only the mod's manifest, entry script, README and license. Test its contents outside the repository with:
 
 ```powershell
-python tools/test_package.py --engine C:/path/to/gen1recomp-0.3.96 --archive dist/dev/running_freedom-0.0.0-dev.zip
+python tools/test_package.py --engine C:/path/to/gen1recomp-0.3.96 --archive dist/v0.1.0/running_freedom-0.1.0.zip
 ```
+
+For installed-data verification, use `tools/test_installed.py --installation <game-data-folder> --archive <zip>`. This copies the installed 0.3.96 `.love` and FireRed/Emerald data into a temporary directory, tests native movement without opening windows, and retains the temporary copy for inspection. User saves/options are not used.

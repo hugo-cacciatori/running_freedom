@@ -14,10 +14,13 @@ def build():
     folder = "dev" if "-dev" in version else f"v{version}"
     output = ROOT / "dist" / folder
     output.mkdir(parents=True, exist_ok=True)
+    unpacked = output / "running_freedom"
+    unpacked.mkdir(exist_ok=True)
     archive = output / f"running_freedom-{version}.zip"
     # Fixed member timestamps make repeated packages byte-identical.
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
         for name in FILES:
+            (unpacked / name).write_bytes((ROOT / name).read_bytes())
             info = zipfile.ZipInfo(f"running_freedom/{name}", (2026, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
