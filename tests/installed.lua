@@ -6,7 +6,7 @@ love = { data = {
 } }
 local GameVersion = require("src.core.GameVersion")
 GameVersion.set(TEST_VERSION)
-assert(require("src.core.Version").engine == "0.3.96", "wrong installed engine")
+assert(require("src.core.Version").engine == INSTALLED_ENGINE, "staged engine is not the installed one")
 local fs, overlay = {}, {}
 function fs.read(p) return overlay[p] or fs_read(p) end
 function fs.getInfo(p) return overlay[p] and { type = "file" } or fs_info(p) end

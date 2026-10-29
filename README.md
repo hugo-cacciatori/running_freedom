@@ -17,18 +17,4 @@ Native movement speed, collisions, scripted movement, and terrain restrictions r
 
 ## Development
 
- Run the headless integration suite against the engine checkout:
-
-```powershell
-python tools/test.py --engine C:/path/to/gen1recomp-0.3.96
-```
-
-Version `0.2.0` passes 223 headless assertions across all 11 Gen 1–3 game profiles (`firered`, `leafgreen`, `ruby`, `sapphire`, `emerald`, `red`, `blue`, `yellow`, `gold`, `silver`, `crystal`), plus standalone packaged verification against the installed `0.3.96` `.love` payload and imported `firered`, `emerald`, `red`, and `crystal` map caches.
-
-Build the distributable bundle, ZIP, and `SHA256SUMS.txt` with `python tools/package.py`, then verify the archive outside the repository:
-
-```powershell
-python tools/test_package.py --engine C:/path/to/gen1recomp-0.3.96 --archive dist/v0.2.0/running_freedom-0.2.0.zip
-python tools/test_installed.py --installation C:/Users/<you>/AppData/Roaming/pokemon-love2d --archive dist/v0.2.0/running_freedom-0.2.0.zip
-```
-
+The repository holds the mod's source and its headless test suites. Releases are built and verified with the project's build tooling: the suites run on the packaged zip in an external engine copy, then against a staged copy of the installed game and its imported data. Install the release zip.
