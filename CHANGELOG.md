@@ -1,3 +1,8 @@
+# 0.2.1
+
+- Load on engine 0.3.97: the supported engine range is now `>=0.3.96 <0.4.0`.
+- The logic now ships as a library bundled inside the mod; behaviour is unchanged.
+
 # 0.2.0
 
 - Extend B-button running freedom to Gen 1 (`red`, `blue`, `yellow`) and Gen 2 (`gold`, `silver`, `crystal`) via `"games": ["all"]` and the engine's `movement.speed` hook.
