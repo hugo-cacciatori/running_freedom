@@ -71,28 +71,45 @@ for _, version in ipairs({ "firered", "leafgreen", "ruby", "sapphire", "emerald"
     inBounds = function() return true end,
     isWalkable = function() return not wall end,
   } } }
-  local function input(runButton)
-    return { isDown = function(_, button)
-      return button == "down" or (button == "b" and runButton)
-    end }
+  -- B toggles running (0.3.0): held B alone no longer runs; a B press while the field is free switches it.
+  local function input(held, pressed)
+    return {
+      isDown = function(_, button) return button == "down" or (button == "b" and held) end,
+      wasPressed = function(_, button) return button == "b" and pressed end,
+    }
   end
-  Player.reset(1, 1, "down")
-  Player.update(game, input(false))
+  local function step(inp)
+    Runtime.call("input.step", function() end, game, 1 / 60)
+    Player.reset(1, 1, "down")
+    Player.update(game, inp)
+  end
+  step(input(false, false))
   check(Player.moving and Player.stepFrames == 16, version .. ": normal walking")
-  Player.reset(1, 1, "down")
-  Player.update(game, input(true))
-  check(Player.moving and Player.stepFrames == 8, version .. ": native B-run speed")
-  Player.reset(1, 1, "down")
+  step(input(true, false))
+  check(Player.moving and Player.stepFrames == 16, version .. ": holding B walks while running is off")
+  step(input(true, true))
+  check(Player.moving and Player.stepFrames == 8 and run.loader.exports.running_freedom.running(),
+        version .. ": a B press switches running on")
+  step(input(false, false))
+  check(Player.moving and Player.stepFrames == 8, version .. ": running stays on without holding B")
   wall = true
-  Player.update(game, input(true))
+  step(input(false, false))
   check(not Player.moving, version .. ": walls still block running")
   wall = false
-  Player.reset(1, 1, "down")
+  step(input(true, true))
+  check(Player.moving and Player.stepFrames == 16, version .. ": another B press switches running off")
   Space.vm = { isRunning = function() return true end }
-  Player.update(game, input(true))
+  step(input(true, true))
   check(not Player.moving, version .. ": script lock still blocks input")
   Space.vm = nil
+  step(input(false, false))
+  check(Player.stepFrames == 16, version .. ": B during a script does not toggle")
+  Space.vm = { isRunning = function() return true end }
+  Runtime.call("input.step", function() end, game, 1 / 60)
+  Space.vm = nil
   Player.reset(1, 1, "down")
+  Player.update(game, input(false, true))
+  check(Player.stepFrames == 16, version .. ": the B that ends a script or menu does not toggle")  Player.reset(1, 1, "down")
   Player.forceStep("down")
   check(Player.stepFrames == 16, version .. ": scripted step retains walking speed")
   Player.reset(1, 1, "down")

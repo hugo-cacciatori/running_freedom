@@ -193,12 +193,20 @@ for _, id in ipairs(ids) do
           local result = Player.tryMove("down", game, Player.canDash())
           if Player.moving and Player.stepFrames == 8 then
             Player.reset(x, y, "down")
-            local input = { isDown = function(_, key) return key == "down" or key == "b" end }
+            -- B toggles running: the press switches it on, the next press back off
+            local input = { isDown = function(_, key) return key == "down" or key == "b" end,
+                            wasPressed = function(_, key) return key == "b" end }
+            require("src.mods.Runtime").call("input.step", function() end, game, 1 / 60)
             Player.update(game, input)
-            assert(Player.moving and Player.stepFrames == 8, "native input failed")
+            assert(Player.moving and Player.stepFrames == 8, "native input failed: a B press did not switch running on")
             for frame = 1, 8 do Player.tick(game) end
             assert(Player.cellX == x and Player.cellY == y + 1 and not Player.moving,
               "running step did not finish in eight frames")
+            Player.reset(x, y, "down")
+            require("src.mods.Runtime").call("input.step", function() end, game, 1 / 60)
+            Player.update(game, input)
+            assert(Player.moving and Player.stepFrames == 16, "a second B press did not switch running off")
+            Player.reset(x, y, "down")
             assert(Json.encode(Space.store) == before, "progression store changed")
             tested[kind], found = true, true
             count = count + 1

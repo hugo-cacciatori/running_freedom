@@ -1,3 +1,7 @@
+# 0.3.0
+
+- Gen 3: running is a toggle. A `B` press while the player is free in the field switches running on or off; no need to hold `B`. Biking, menus, dialogue and scripts are unaffected.
+
 # 0.2.1
 
 - Load on engine 0.3.97: the supported engine range is now `>=0.3.96 <0.4.0`.
