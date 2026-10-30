@@ -7,11 +7,18 @@
   "profile": "content",
   "category": "QOL",
   "game_version": ">=0.3.96 <0.4.0",
-  "games": ["all"],
-  "permissions": ["engine_internals"],
+  "games": [
+    "all"
+  ],
+  "permissions": [
+    "engine_internals"
+  ],
   "priority": 100,
   "dependencies": [],
-  "conflicts": ["gen1_wild_qol", "gen1_sprint"],
-  "github": "hugo-cacciatori/running_freedom",
-  "description": "Run indoors and before receiving Running Shoes across Gen 1, Gen 2, and Gen 3. Gen 3: press B to switch running on or off; Gen 1/2: hold B. No settings."
+  "conflicts": [
+    "gen1_wild_qol",
+    "gen1_sprint"
+  ],
+  "description": "Run indoors and before receiving Running Shoes across Gen 1, Gen 2, and Gen 3. Gen 3: press B to switch running on or off; Gen 1/2: hold B. No settings.",
+  "github": "hugo-cacciatori/running_freedom"
 }
