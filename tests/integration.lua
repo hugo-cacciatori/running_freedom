@@ -109,7 +109,21 @@ for _, version in ipairs({ "firered", "leafgreen", "ruby", "sapphire", "emerald"
   Space.vm = nil
   Player.reset(1, 1, "down")
   Player.update(game, input(false, true))
-  check(Player.stepFrames == 16, version .. ": the B that ends a script or menu does not toggle")  Player.reset(1, 1, "down")
+  check(Player.stepFrames == 16, version .. ": the B that ends a script or menu does not toggle")
+  -- another mod's run intent (mouse_keyboard_play's click to walk) wins over the toggle while it is set
+  Player.modRunIntent = true
+  step(input(false, false))
+  check(Player.moving and Player.stepFrames == 8, version .. ": a run intent runs while the toggle is off")
+  Player.modRunIntent = nil
+  step(input(true, true))
+  check(Player.stepFrames == 8, version .. ": toggle on")
+  Player.modRunIntent = false
+  step(input(false, false))
+  check(Player.moving and Player.stepFrames == 16, version .. ": a walk intent walks while the toggle is on")
+  Player.modRunIntent = nil
+  step(input(true, true))
+  check(Player.stepFrames == 16, version .. ": toggle off again")
+  Player.reset(1, 1, "down")
   Player.forceStep("down")
   check(Player.stepFrames == 16, version .. ": scripted step retains walking speed")
   Player.reset(1, 1, "down")

@@ -1,6 +1,7 @@
 # 0.3.0
 
 - Gen 3: running is a toggle. A `B` press while the player is free in the field switches running on or off; no need to hold `B`. Biking, menus, dialogue and scripts are unaffected.
+- Gen 3: honours `Player.modRunIntent`, the walk/run choice another mod sets for the length of its own movement (Mouse and Keyboard Play's click to walk).
 
 # 0.2.1
 
